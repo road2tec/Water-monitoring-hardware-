@@ -1,6 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const path = require('path');
 require('dotenv').config();
 
 const app = express();
@@ -15,11 +16,17 @@ mongoose.connect(process.env.MONGODB_URI)
     .then(() => console.log('Connected to MongoDB via Compass (localhost:27017)'))
     .catch(err => console.error('MongoDB connection error:', err));
 
-// Models
 const User = require('./models/User');
 const SensorData = require('./models/SensorData');
+const uploadRoute = require('./routes/upload');
+const dashboardRoute = require('./routes/dashboard');
+
+// Serve static uploads
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // --- API Routes ---
+app.use('/api/upload', uploadRoute);
+app.use('/api/dashboard', dashboardRoute);
 
 // Health Check
 app.get('/api/health', (req, res) => {

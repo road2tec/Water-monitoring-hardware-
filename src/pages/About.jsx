@@ -20,14 +20,14 @@ const About = () => {
 
     const milestones = [
         { year: '2022', title: 'Research Initiated', desc: 'AI water quality detection research began at the university level.' },
-        { year: '2023', title: 'Prototype Deployed', desc: 'First IoT sensors deployed in pilot zone with real-time monitoring.' },
+        { year: '2023', title: 'Neural Prototype', desc: 'First AI vision nodes deployed in pilot zone with real-time software analysis.' },
         { year: '2024', title: 'AI Model v2.0', desc: 'Deep learning model achieved 99.2% accuracy in contaminant detection.' },
-        { year: '2025', title: 'City-Wide Rollout', desc: 'Full deployment across 48 zones with 1,240+ active sensor units.' },
+        { year: '2025', title: 'Global Rollout', desc: 'Full software-defined deployment across 48 sectors with 1,240+ active neural nodes.' },
     ];
 
     const team = [
         { name: 'Dr. Priya Sharma', role: 'AI Research Lead', initials: 'PS' },
-        { name: 'Rahul Deshmukh', role: 'IoT Systems Architect', initials: 'RD' },
+        { name: 'Rahul Deshmukh', role: 'AI Infrastructure Architect', initials: 'RD' },
         { name: 'Sneha Patil', role: 'Data Scientist', initials: 'SP' },
         { name: 'Amit Kulkarni', role: 'Full-Stack Engineer', initials: 'AK' },
     ];
@@ -51,7 +51,7 @@ const About = () => {
                         <div className="flex flex-wrap gap-8">
                             <div>
                                 <div className="text-4xl font-black text-slate-900">1,240+</div>
-                                <div className="text-slate-400 font-bold text-sm uppercase tracking-widest">Sensors Active</div>
+                                <div className="text-slate-400 font-bold text-sm uppercase tracking-widest">Vision Nodes Active</div>
                             </div>
                             <div>
                                 <div className="text-4xl font-black text-slate-900">48</div>

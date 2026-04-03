@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Droplet, Menu, X, ArrowRight } from 'lucide-react';
+import { Waves, Menu, X, ArrowRight } from 'lucide-react';
 
 const Navbar = () => {
     const [isScrolled, setIsScrolled] = useState(false);
@@ -30,8 +30,8 @@ const Navbar = () => {
             <div className="max-w-7xl mx-auto px-6 lg:px-8">
                 <div className="flex justify-between items-center">
                     <Link to="/" className="flex items-center gap-3 group">
-                        <div className="bg-blue-600 p-2 rounded-xl text-white shadow-lg shadow-blue-200 group-hover:scale-110 transition-transform">
-                            <Droplet size={24} />
+                        <div className="bg-indigo-600 p-2 rounded-xl text-white shadow-lg shadow-indigo-200 group-hover:scale-110 transition-transform">
+                            <Waves size={24} />
                         </div>
                         <span className="text-2xl font-black text-slate-900 tracking-tighter">AquaGuard AI</span>
                     </Link>

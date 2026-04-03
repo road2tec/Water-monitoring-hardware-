@@ -6,8 +6,8 @@ const Settings = () => {
         { icon: User, label: 'Profile Settings', desc: 'Manage your personal information and preferences.' },
         { icon: Bell, label: 'Notifications', desc: 'Configure how you receive alerts and reports.' },
         { icon: Shield, label: 'Security', desc: 'Manage passwords and account authentication.' },
-        { icon: Database, label: 'Data Sources', desc: 'Connect and manage external sensor APIs.' },
-        { icon: Globe, label: 'System Regions', desc: 'Configure geographical zones for monitoring.' },
+        { icon: Database, label: 'Data Sources', desc: 'Connect and manage external vision nodes.' },
+        { icon: Globe, label: 'Neural Sectors', desc: 'Configure geographical sectors for monitoring.' },
     ];
 
     return (
@@ -34,7 +34,7 @@ const Settings = () => {
             <div className="bg-rose-50 border border-rose-100 rounded-[2rem] p-8 mt-12">
                 <h3 className="text-rose-800 font-bold text-xl mb-4">Advanced Danger Zone</h3>
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <p className="text-rose-600 font-medium">Reset all sensor mapping data and clear history logs.</p>
+                    <p className="text-rose-600 font-medium">Reset all neural node mapping data and clear history logs.</p>
                     <button className="px-6 py-3 bg-rose-600 text-white rounded-xl font-bold hover:bg-rose-700 transition-all shadow-lg shadow-rose-200">
                         Factory Reset
                     </button>

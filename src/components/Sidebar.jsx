@@ -2,11 +2,12 @@ import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { 
     LayoutDashboard, 
-    Droplets, 
+    Waves, 
     BarChart3, 
     FileText, 
     Bell, 
     Settings,
+    Eye,
     LogOut
 } from 'lucide-react';
 
@@ -21,19 +22,17 @@ const Sidebar = () => {
 
     const menuItems = [
         { icon: LayoutDashboard, label: 'Overview', path: '/dashboard' },
-        { icon: Droplets, label: 'Live Sensors', path: '/dashboard/sensors' },
-        { icon: FileText, label: 'Image Analysis', path: '/dashboard/image-analysis' },
+        { icon: Eye, label: 'Image Analysis', path: '/dashboard/image-analysis' },
         { icon: BarChart3, label: 'AI Analytics', path: '/dashboard/analytics' },
         { icon: FileText, label: 'Reports', path: '/dashboard/reports' },
-        { icon: Bell, label: 'Alerts', path: '/dashboard/alerts' },
         { icon: Settings, label: 'Settings', path: '/dashboard/settings' },
     ];
 
     return (
         <aside className="w-64 bg-white border-r border-slate-200 flex flex-col h-screen fixed left-0 top-0 z-40">
             <div className="p-6 border-b border-slate-100 flex items-center gap-3">
-                <div className="bg-blue-600 p-2 rounded-xl text-white shadow-lg shadow-blue-200">
-                    <Droplets size={24} />
+                <div className="bg-indigo-600 p-2 rounded-xl text-white shadow-lg shadow-indigo-200">
+                    <Waves size={24} />
                 </div>
                 <h2 className="font-bold text-slate-800 text-xl tracking-tight">AquaGuard AI</h2>
             </div>

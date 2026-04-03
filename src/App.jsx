@@ -7,7 +7,6 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import Overview from './pages/dashboard/Overview';
-import Sensors from './pages/dashboard/Sensors';
 import Analytics from './pages/dashboard/Analytics';
 import Reports from './pages/dashboard/Reports';
 import Alerts from './pages/dashboard/Alerts';
@@ -47,11 +46,9 @@ function App() {
                     {/* Dashboard Routes with Sidebar Layout */}
                     <Route path="/dashboard" element={<Dashboard />}>
                         <Route index element={<Overview />} />
-                        <Route path="sensors" element={<Sensors />} />
                         <Route path="image-analysis" element={<ImageAnalysis />} />
                         <Route path="analytics" element={<Analytics />} />
                         <Route path="reports" element={<Reports />} />
-                        <Route path="alerts" element={<Alerts />} />
                         <Route path="settings" element={<Settings />} />
                     </Route>
                 </Routes>

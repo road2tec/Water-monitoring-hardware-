@@ -19,8 +19,8 @@ const Features = () => {
     const mainFeatures = [
         {
             icon: <Activity size={28} />,
-            title: 'Real-time Sensor Monitoring',
-            description: 'Track pH, TDS, turbidity, and temperature levels in real-time with millisecond latency updates from IoT sensors deployed across the city.',
+            title: 'Neural Vision Architecture',
+            description: 'Identify biological markers, debris, and turbidity levels using deep neural scanning with millisecond latency via our distributed AI cloud.',
             color: 'blue'
         },
         {
@@ -32,7 +32,7 @@ const Features = () => {
         {
             icon: <TrendingUp size={28} />,
             title: 'Predictive Analytics',
-            description: 'Our AI forecasts contamination events hours in advance using historical patterns, weather data, and upstream discharge monitoring.',
+            description: 'Our AI forecasts contamination events hours in advance using historical patterns, visual data streams, and upstream pattern analysis.',
             color: 'emerald'
         },
         {
@@ -56,9 +56,9 @@ const Features = () => {
     ];
 
     const techSpecs = [
-        { icon: <Wifi size={20} />, label: 'IoT Connectivity', value: 'LoRaWAN + 5G' },
-        { icon: <Clock size={20} />, label: 'Update Frequency', value: 'Every 5 seconds' },
-        { icon: <BarChart3 size={20} />, label: 'Data Points/Day', value: '2.4 Million' },
+        { icon: <Wifi size={20} />, label: 'Neural Protocol', value: 'Edge + Cloud AI' },
+        { icon: <Clock size={20} />, label: 'Scan Frequency', value: 'Every 5 seconds' },
+        { icon: <BarChart3 size={20} />, label: 'Inferences/Day', value: '2.4 Million' },
         { icon: <Zap size={20} />, label: 'Response Time', value: '< 200ms' },
     ];
 
@@ -86,7 +86,7 @@ const Features = () => {
                     <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">Smarter Water Safety</span>
                 </h1>
                 <p className="text-xl text-slate-500 max-w-2xl mx-auto leading-relaxed font-medium">
-                    AquaGuard AI combines cutting-edge IoT sensors with advanced machine learning to deliver comprehensive water quality monitoring.
+                    AquaGuard AI combines cutting-edge neural vision engines with advanced machine learning to deliver comprehensive water quality intelligence.
                 </p>
             </section>
 

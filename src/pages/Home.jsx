@@ -18,7 +18,7 @@ const Home = () => {
     const features = [
         {
             title: 'Real-time Monitoring',
-            description: 'Continuous tracking of pH, TDS, and turbidity levels with millisecond latency.',
+            description: 'Continuous tracking of clarity, debris, and accumulation with millisecond latency.',
             icon: <Activity className="h-6 w-6" />,
             color: 'blue'
         },
@@ -43,7 +43,7 @@ const Home = () => {
     ];
 
     const stats = [
-        { label: 'Sensors Deployed', value: '1,240+' },
+        { label: 'Neural Nodes Deployed', value: '1,240+' },
         { label: 'Zones Monitored', value: '48' },
         { label: 'Data Points/Day', value: '2.4M' },
         { label: 'AI Accuracy', value: '99.2%' },
@@ -61,14 +61,14 @@ const Home = () => {
                                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
                                     <span className="relative inline-flex rounded-full h-3 w-3 bg-blue-600"></span>
                                 </span>
-                                Next-Gen Water Monitoring
+                                Software-Defined Water Intelligence
                             </div>
                             <h1 className="text-6xl md:text-7xl font-black text-slate-900 tracking-tight leading-[1.1] mb-8">
                                 AI-Powered <br />
                                 <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">Water Safety</span>
                             </h1>
                             <p className="text-xl text-slate-500 mb-10 leading-relaxed max-w-xl">
-                                AquaGuard AI uses advanced machine learning to secure urban water systems. Experience real-time monitoring and predictive safety at your fingertips.
+                                AquaGuard AI uses advanced neural vision to secure urban water systems. Experience real-time monitoring and predictive safety at your fingertips.
                             </p>
                             <div className="flex flex-col sm:flex-row gap-4">
                                 <Link to="/register" className="bg-slate-900 text-white px-10 py-5 rounded-[1.5rem] font-bold text-lg hover:bg-slate-800 transition-all shadow-xl shadow-slate-200 flex items-center justify-center gap-3 active:scale-95 group">
@@ -157,7 +157,7 @@ const Home = () => {
                                 Powered by Vision AI
                             </h2>
                             <p className="text-xl text-slate-400 mb-10 leading-relaxed">
-                                Don't have a sensor? No problem. Simply upload a photo of your water source, and our AI will analyze biological markers and turbidity instantly.
+                                Simply upload a photo of your water source, and our AI will analyze biological markers and turbidity instantly with 99.2% accuracy.
                             </p>
                             <ul className="space-y-6 mb-12">
                                 {[

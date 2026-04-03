@@ -1,11 +1,55 @@
 import React, { useState } from 'react';
-import { Upload, Camera, ImageIcon, Send, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Upload, Camera, ImageIcon, Send, Loader2, CheckCircle2, AlertCircle, RefreshCw } from 'lucide-react';
 
 const ImageAnalysis = () => {
     const [selectedImage, setSelectedImage] = useState(null);
     const [previewUrl, setPreviewUrl] = useState(null);
     const [analyzing, setAnalyzing] = useState(false);
     const [result, setResult] = useState(null);
+    const [error, setError] = useState(null);
+    const [isLive, setIsLive] = useState(false);
+    const [videoRef] = useState(React.createRef());
+    const [stream, setStream] = useState(null);
+
+    const startLive = async () => {
+        try {
+            const mediaStream = await navigator.mediaDevices.getUserMedia({ video: true });
+            setStream(mediaStream);
+            if (videoRef.current) {
+                videoRef.current.srcObject = mediaStream;
+            }
+            setIsLive(true);
+            setResult(null);
+        } catch (err) {
+            console.error('Camera Error:', err);
+            setError('Could not access camera. Please check permissions.');
+        }
+    };
+
+    const stopLive = () => {
+        if (stream) {
+            stream.getTracks().forEach(track => track.stop());
+            setStream(null);
+        }
+        setIsLive(false);
+    };
+
+    const captureFrame = () => {
+        if (!videoRef.current) return;
+        
+        const canvas = document.createElement('canvas');
+        canvas.width = videoRef.current.videoWidth;
+        canvas.height = videoRef.current.videoHeight;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(videoRef.current, 0, 0);
+        
+        canvas.toBlob((blob) => {
+            const file = new File([blob], "capture.jpg", { type: "image/jpeg" });
+            setSelectedImage(file);
+            setPreviewUrl(URL.createObjectURL(file));
+            stopLive();
+        }, 'image/jpeg');
+    };
 
     const handleImageChange = (e) => {
         const file = e.target.files[0];
@@ -13,40 +57,86 @@ const ImageAnalysis = () => {
             setSelectedImage(file);
             setPreviewUrl(URL.createObjectURL(file));
             setResult(null);
+            setError(null);
+            if (isLive) stopLive();
         }
     };
 
-    const handleUpload = () => {
+    const handleUpload = async () => {
         if (!selectedImage) return;
-        setAnalyzing(true);
         
-        // Simulating AI analysis
-        setTimeout(() => {
-            setAnalyzing(false);
-            setResult({
-                status: 'Success',
-                contamination: 'Moderate',
-                prediction: 'Detected presence of micro-plastics and algae.',
-                confidence: '94%'
+        setAnalyzing(true);
+        setError(null);
+        
+        try {
+            const formData = new FormData();
+            formData.append('image', selectedImage);
+
+            const response = await fetch('http://localhost:5000/api/upload', {
+                method: 'POST',
+                body: formData,
             });
-        }, 3000);
+
+            const data = await response.json();
+
+            if (response.ok) {
+                setResult({
+                    status: 'Complete',
+                    detections: data.detections || [],
+                    originalUrl: data.originalUrl,
+                    enhancedUrl: data.enhancedUrl,
+                    depthUrl: data.depthUrl,
+                    confidence: data.detections && data.detections.length > 0 
+                        ? Math.max(...data.detections.map(d => d.confidence)) 
+                        : null
+                });
+            } else {
+                setError(data.error || 'AI analysis failed. Please try again.');
+            }
+        } catch (err) {
+            console.error('Upload Error:', err);
+            setError('Could not connect to the server. Ensure the backend is running.');
+        } finally {
+            setAnalyzing(false);
+        }
+    };
+
+    const resetSelection = () => {
+        setSelectedImage(null);
+        setPreviewUrl(null);
+        setResult(null);
+        setError(null);
+        stopLive();
     };
 
     return (
-        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-5 duration-700">
-            <div>
-                <h1 className="text-3xl font-bold text-slate-800">Visual Water Analysis</h1>
-                <p className="text-slate-500 mt-1">Upload a photo of water for instant AI-powered quality assessment.</p>
+        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-5 duration-700 pb-20">
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+                <div>
+                    <h1 className="text-4xl font-black text-slate-900 tracking-tight">AI Vision Engine</h1>
+                    <p className="text-slate-500 mt-2 text-lg font-medium">Capture or upload for deep-water neural intelligence.</p>
+                </div>
+                <div className="flex gap-2">
+                    <button 
+                        onClick={() => { if(isLive) stopLive(); else startLive(); }}
+                        className={`px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-widest border transition-all flex items-center gap-2
+                            ${isLive ? 'bg-rose-500 text-white border-rose-600' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50 shadow-sm'}
+                        `}
+                    >
+                        {isLive ? <><div className="w-2 h-2 bg-white rounded-full animate-ping"></div> Stop Feed</> : <><Camera size={16} /> Live Optical Link</>}
+                    </button>
+                    <span className="px-4 py-2 bg-indigo-50 text-indigo-600 rounded-2xl font-bold text-xs uppercase tracking-widest border border-indigo-100 flex items-center">MiDaS v3.0</span>
+                </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-                {/* Upload Section */}
-                <div className="space-y-6">
+            <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
+                {/* Upload & Control Section */}
+                <div className="xl:col-span-5 space-y-6">
                     <div 
-                        className={`relative border-2 border-dashed rounded-[2.5rem] p-12 transition-all duration-300 flex flex-col items-center justify-center text-center cursor-pointer
-                            ${previewUrl ? 'border-blue-500 bg-blue-50/30' : 'border-slate-200 bg-white hover:border-blue-400 hover:bg-slate-50'}
+                        className={`relative border-2 border-dashed rounded-[3rem] transition-all duration-500 flex flex-col items-center justify-center text-center overflow-hidden min-h-[450px] shadow-sm
+                            ${previewUrl || isLive ? 'border-indigo-500 bg-black' : 'border-slate-200 bg-white hover:border-indigo-400 hover:bg-slate-50 cursor-pointer'}
                         `}
-                        onClick={() => document.getElementById('imageUpload').click()}
+                        onClick={() => !analyzing && !isLive && !previewUrl && document.getElementById('imageUpload').click()}
                     >
                         <input 
                             type="file" 
@@ -56,126 +146,225 @@ const ImageAnalysis = () => {
                             onChange={handleImageChange}
                         />
                         
-                        {previewUrl ? (
-                            <img 
-                                src={previewUrl} 
-                                alt="Preview" 
-                                className="w-full max-h-80 object-cover rounded-3xl shadow-xl border-4 border-white"
-                            />
+                        {isLive ? (
+                            <div className="relative w-full h-full flex items-center justify-center group">
+                                <video 
+                                    ref={videoRef} 
+                                    autoPlay 
+                                    playsInline 
+                                    className="w-full h-full object-cover"
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex flex-col justify-end p-12">
+                                    <h3 className="text-white text-3xl font-black mb-2 flex items-center gap-3">
+                                        <div className="w-3 h-3 bg-rose-500 rounded-full animate-pulse shadow-[0_0_15px_rgba(244,63,94,0.8)]"></div> Real-time Neural Stream
+                                    </h3>
+                                    <p className="text-white/60 mb-8 font-medium">Position your sample within the frame for optimal extraction.</p>
+                                    <button 
+                                        onClick={captureFrame}
+                                        className="w-full py-5 bg-white text-black rounded-2xl font-black text-xl hover:bg-indigo-50 transition-all active:scale-95 shadow-2xl flex items-center justify-center gap-3"
+                                    >
+                                        <Camera size={24} /> Capture Intelligence
+                                    </button>
+                                </div>
+                            </div>
+                        ) : previewUrl ? (
+                            <div className="relative group w-full p-8 bg-black/5">
+                                <img 
+                                    src={previewUrl} 
+                                    alt="Preview" 
+                                    className="w-full max-h-[350px] object-contain rounded-3xl shadow-2xl border-4 border-white/10"
+                                />
+                                {!analyzing && (
+                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 rounded-3xl transition-opacity flex items-center justify-center backdrop-blur-sm pointer-events-none">
+                                        <div className="bg-white p-4 rounded-full text-slate-800 shadow-xl scale-90 group-hover:scale-100 transition-transform">
+                                            <ImageIcon size={32} />
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
                         ) : (
                             <>
-                                <div className="p-6 bg-blue-50 rounded-full text-blue-600 mb-6 group-hover:scale-110 transition-transform">
-                                    <Upload size={48} />
+                                <div className="p-10 bg-indigo-100/50 text-indigo-600 rounded-full mb-8 border border-indigo-200 shadow-inner">
+                                    <Upload size={64} strokeWidth={1} />
                                 </div>
-                                <h3 className="text-xl font-bold text-slate-800 mb-2">Click or Drag to Upload</h3>
-                                <p className="text-slate-400 max-w-xs">Supported formats: JPG, PNG. Max size 5MB.</p>
+                                <h3 className="text-3xl font-black text-slate-800 mb-3 tracking-tight">Source Input</h3>
+                                <p className="text-slate-400 max-w-sm font-medium text-lg leading-relaxed px-6">Feed the neural engine an image or start a live optical link.</p>
                             </>
-                        )}
-                        
-                        {previewUrl && (
-                            <div className="absolute top-4 right-4 flex gap-2">
-                                <button 
-                                    onClick={(e) => { e.stopPropagation(); setPreviewUrl(null); setSelectedImage(null); }}
-                                    className="p-2 bg-white/90 backdrop-blur rounded-xl text-rose-500 shadow-md hover:bg-rose-500 hover:text-white transition-all"
-                                >
-                                    Remove
-                                </button>
-                            </div>
                         )}
                     </div>
 
                     <div className="flex gap-4">
                         <button 
-                            disabled={!selectedImage || analyzing}
+                            disabled={!selectedImage || analyzing || isLive}
                             onClick={handleUpload}
-                            className={`flex-grow py-4 rounded-2xl font-bold text-lg flex items-center justify-center gap-3 transition-all
-                                ${!selectedImage 
-                                    ? 'bg-slate-200 text-slate-400 cursor-not-allowed' 
-                                    : 'bg-blue-600 text-white shadow-lg shadow-blue-200 hover:bg-blue-700 active:scale-95'}
+                            className={`flex-grow py-6 rounded-[2rem] font-black text-xl flex items-center justify-center gap-4 transition-all duration-300
+                                ${!selectedImage || isLive 
+                                    ? 'bg-slate-100 text-slate-300 cursor-not-allowed' 
+                                    : 'bg-slate-900 text-white shadow-2xl shadow-slate-300 hover:scale-[1.02] active:scale-95'}
                             `}
                         >
                             {analyzing ? (
                                 <>
-                                    <Loader2 className="animate-spin" /> Analyzing Image...
+                                    <RefreshCw className="animate-spin" size={28} /> Analyzing...
                                 </>
                             ) : (
                                 <>
-                                    <Send size={20} /> Start AI Analysis
+                                    <Send size={24} /> Run AI Pipeline
                                 </>
                             )}
                         </button>
-                        <button className="px-6 py-4 bg-white border border-slate-200 rounded-2xl text-slate-600 hover:bg-slate-50 transition-all shadow-sm">
-                            <Camera size={24} />
+                        <button 
+                            onClick={resetSelection}
+                            className="px-8 py-6 bg-white border-2 border-slate-100 rounded-[2rem] text-slate-600 hover:bg-slate-50 transition-all shadow-sm active:scale-90"
+                        >
+                            <RefreshCw size={28} />
                         </button>
                     </div>
                 </div>
 
-                {/* Results Section */}
-                <div className="space-y-6">
-                    <div className="bg-white rounded-[2.5rem] border border-slate-100 p-10 h-full flex flex-col min-h-[400px]">
-                        {!result && !analyzing ? (
-                            <div className="flex-grow flex flex-col items-center justify-center text-center text-slate-400">
-                                <div className="p-8 bg-slate-50 rounded-full mb-6">
-                                    <ImageIcon size={64} strokeWidth={1} />
+                {/* Multi-Stage Results Section */}
+                <div className="xl:col-span-7 space-y-6">
+                    <div className="bg-white rounded-[4rem] border-2 border-slate-100/50 p-1 split-grid-container h-full min-h-[500px] shadow-sm relative overflow-hidden flex flex-col">
+                        {!result && !analyzing && !error ? (
+                            <div className="flex-grow flex flex-col items-center justify-center text-center p-12 animate-in fade-in duration-1000">
+                                <div className="p-12 bg-slate-50 rounded-full mb-8 border border-slate-100">
+                                    <ImageIcon size={84} strokeWidth={0.5} className="text-slate-300" />
                                 </div>
-                                <p className="text-lg font-medium">Upload a photo to see the analysis results here.</p>
+                                <h4 className="text-3xl font-black text-slate-800 mb-3 tracking-tight">Intelligence Gateway</h4>
+                                <p className="text-slate-500 font-medium text-lg max-w-sm mx-auto">Upload an image to trigger the enhancement, depth, and detection pipeline.</p>
                             </div>
                         ) : analyzing ? (
-                            <div className="flex-grow flex flex-col items-center justify-center">
-                                <div className="relative w-32 h-32 mb-8">
-                                    <div className="absolute inset-0 border-4 border-blue-100 rounded-full"></div>
-                                    <div className="absolute inset-0 border-4 border-blue-600 rounded-full border-t-transparent animate-spin"></div>
-                                    <div className="absolute inset-0 flex items-center justify-center text-blue-600 font-bold">
-                                        SCAN
+                            <div className="flex-grow flex flex-col items-center justify-center bg-slate-50/50">
+                                <div className="relative w-48 h-48 mb-12">
+                                    <div className="absolute inset-0 border-[10px] border-slate-100 rounded-full"></div>
+                                    <div className="absolute inset-0 border-[10px] border-indigo-600 rounded-full border-t-transparent animate-spin"></div>
+                                    <div className="absolute inset-0 flex items-center justify-center">
+                                        <div className="text-center">
+                                            <div className="text-sm font-black text-indigo-600 tracking-[0.2em] uppercase mb-1">Scanning</div>
+                                            <div className="h-1 w-12 bg-indigo-600 rounded-full mx-auto"></div>
+                                        </div>
+                                    </div>
+                                    <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 bg-white border border-slate-100 rounded-full shadow-lg text-[10px] font-black uppercase tracking-widest text-slate-800">Neural Engine v3.2</div>
+                                </div>
+                                <div className="space-y-3 text-center">
+                                    <h3 className="text-3xl font-black text-slate-900 tracking-tight">Processing Underwater Scene</h3>
+                                    <div className="flex items-center justify-center gap-6">
+                                        <span className="text-slate-500 font-bold flex items-center gap-2"><div className="w-2 h-2 bg-indigo-500 rounded-full"></div> CLAHE Enhancement</span>
+                                        <span className="text-slate-500 font-bold flex items-center gap-2"><div className="w-2 h-2 bg-emerald-500 rounded-full"></div> MiDaS Depth Mapping</span>
+                                        <span className="text-slate-500 font-bold flex items-center gap-2"><div className="w-2 h-2 bg-amber-500 rounded-full"></div> YOLO Detection</span>
                                     </div>
                                 </div>
-                                <h3 className="text-2xl font-bold text-slate-800 mb-2">Processing Pixels...</h3>
-                                <p className="text-slate-500">Checking for impurities and biological markers.</p>
+                            </div>
+                        ) : error ? (
+                            <div className="flex-grow flex flex-col items-center justify-center text-center p-12">
+                                <div className="p-10 bg-rose-50 text-rose-500 rounded-full mb-8">
+                                    <AlertCircle size={72} strokeWidth={1} />
+                                </div>
+                                <h3 className="text-3xl font-black text-slate-900 mb-3 tracking-tight">Pipeline Fault</h3>
+                                <p className="text-slate-500 font-medium text-lg max-w-sm">{error}</p>
+                                <button onClick={handleUpload} className="mt-10 px-10 py-4 bg-slate-900 text-white rounded-[1.5rem] font-black text-lg hover:bg-slate-800 transition-all shadow-xl shadow-slate-200">Try Again</button>
                             </div>
                         ) : (
-                            <div className="animate-in zoom-in-95 duration-500">
-                                <div className="flex items-center gap-4 mb-8">
-                                    <div className="p-3 bg-emerald-100 text-emerald-600 rounded-2xl">
-                                        <CheckCircle2 size={32} />
+                            <div className="animate-in fade-in zoom-in-95 duration-700 flex flex-col h-full bg-slate-50/30">
+                                {/* Dashboard View */}
+                                <div className="p-8 grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div className="space-y-3">
+                                        <div className="flex items-center justify-between px-2">
+                                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Raw Capture</span>
+                                        </div>
+                                        <div className="rounded-[2rem] overflow-hidden border-2 border-white shadow-xl shadow-slate-200/50 aspect-video">
+                                            <img src={result.originalUrl} alt="Original" className="w-full h-full object-cover" />
+                                        </div>
                                     </div>
-                                    <div>
-                                        <h3 className="text-2xl font-bold text-slate-800 leading-none mb-1">Analysis Complete</h3>
-                                        <p className="text-slate-500 font-medium tracking-tight">Image Token ID: IMG-{Math.floor(Math.random() * 10000)}</p>
+                                    <div className="space-y-3">
+                                        <div className="flex items-center justify-between px-2">
+                                            <span className="text-[10px] font-black uppercase tracking-widest text-indigo-500">Enhanced Clarity</span>
+                                        </div>
+                                        <div className="rounded-[2rem] overflow-hidden border-2 border-indigo-100 shadow-xl shadow-indigo-200/20 aspect-video">
+                                            <img src={result.enhancedUrl} alt="Enhanced" className="w-full h-full object-cover" />
+                                        </div>
+                                    </div>
+                                    <div className="space-y-3">
+                                        <div className="flex items-center justify-between px-2">
+                                            <span className="text-[10px] font-black uppercase tracking-widest text-emerald-500">AI Depth Mapping</span>
+                                        </div>
+                                        <div className="rounded-[2rem] overflow-hidden border-2 border-emerald-100 shadow-xl shadow-emerald-200/20 aspect-video">
+                                            <img src={result.depthUrl} alt="Depth" className="w-full h-full object-cover" />
+                                        </div>
                                     </div>
                                 </div>
 
-                                <div className="space-y-6">
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100">
-                                            <p className="text-slate-500 text-sm font-bold uppercase mb-1">Contamination</p>
-                                            <p className="text-2xl font-black text-amber-500">{result.contamination}</p>
+                                <div className="px-8 pb-8 flex-grow flex flex-col">
+                                    <div className="bg-white rounded-[3rem] p-8 shadow-sm border border-slate-100 flex-grow">
+                                        <div className="flex items-center justify-between mb-8">
+                                            <div className="flex items-center gap-4">
+                                                <div className="p-3 bg-slate-900 text-white rounded-2xl shadow-lg">
+                                                    <CheckCircle2 size={28} />
+                                                </div>
+                                                <div>
+                                                    <h4 className="text-xl font-extrabold text-slate-900 leading-none mb-1">Scan Results</h4>
+                                                    <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">Environment Intel Extraction</p>
+                                                </div>
+                                            </div>
+                                            <div className="flex gap-4">
+                                                <div className="px-5 py-3 bg-slate-50 border border-slate-100 rounded-2xl text-center min-w-[120px]">
+                                                    <p className="text-[10px] font-black text-slate-400 uppercase mb-1">Objects</p>
+                                                    <p className="text-2xl font-black text-slate-800 leading-none">{result.detections.length}</p>
+                                                </div>
+                                                <div className="px-5 py-3 bg-slate-50 border border-slate-100 rounded-2xl text-center min-w-[120px]">
+                                                    <p className="text-[10px] font-black text-slate-400 uppercase mb-1">Max Acc.</p>
+                                                    <p className="text-2xl font-black text-indigo-600 leading-none">{result.confidence ? (result.confidence * 100).toFixed(0) : '0'}%</p>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100">
-                                            <p className="text-slate-500 text-sm font-bold uppercase mb-1">AI Confidence</p>
-                                            <p className="text-2xl font-black text-blue-600">{result.confidence}</p>
+
+                                        <div className="grid gap-4 max-h-[300px] overflow-y-auto custom-scrollbar pr-2">
+                                            {result.detections.length > 0 ? (
+                                                result.detections.map((det, idx) => (
+                                                    <div key={idx} className="flex items-center justify-between p-5 bg-slate-50/50 rounded-2xl border border-slate-50 hover:bg-white hover:border-indigo-100 transition-all duration-300">
+                                                        <div className="flex items-center gap-4">
+                                                            <div className="w-10 h-10 bg-indigo-100 text-indigo-700 rounded-xl flex items-center justify-center font-black">
+                                                                {idx + 1}
+                                                            </div>
+                                                            <span className="font-black text-lg text-slate-800 capitalize">{det.label}</span>
+                                                        </div>
+                                                        <div className="flex items-center gap-4">
+                                                            <div className="w-32 h-2.5 bg-slate-100 rounded-full overflow-hidden hidden sm:block">
+                                                                <div className="h-full bg-indigo-600 rounded-full" style={{ width: `${det.confidence * 100}%` }}></div>
+                                                            </div>
+                                                            <span className="font-black text-indigo-600 min-w-[40px] text-right">{(det.confidence * 100).toFixed(0)}%</span>
+                                                        </div>
+                                                    </div>
+                                                ))
+                                            ) : (
+                                                <div className="text-center py-12 text-slate-400 font-bold italic">No targets localized within frame.</div>
+                                            )}
                                         </div>
                                     </div>
-
-                                    <div className="bg-emerald-50 border border-emerald-100 p-6 rounded-3xl">
-                                        <h4 className="font-bold text-emerald-800 mb-2 flex items-center gap-2">
-                                            <AlertCircle size={18} /> AI Observations
-                                        </h4>
-                                        <p className="text-emerald-700 leading-relaxed font-medium">
-                                            {result.prediction}
-                                        </p>
-                                    </div>
-
-                                    <button className="w-full py-4 text-blue-600 font-bold hover:bg-blue-50 rounded-2xl transition-all">
-                                        Download Detailed PDF Report
-                                    </button>
                                 </div>
                             </div>
                         )}
                     </div>
                 </div>
             </div>
+
+            <style>{`
+                @keyframes scan {
+                    0%, 100% { top: 0%; }
+                    50% { top: 100%; }
+                }
+                .custom-scrollbar::-webkit-scrollbar {
+                    width: 5px;
+                }
+                .custom-scrollbar::-webkit-scrollbar-thumb {
+                    background: #e2e8f0;
+                    border-radius: 10px;
+                }
+                .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #cbd5e1; }
+            `}</style>
         </div>
     );
 };
 
 export default ImageAnalysis;
+
