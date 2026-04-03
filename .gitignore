@@ -26,3 +26,5 @@ npm-debug.log*
 
 # Misc
 .cache/
+server/uploads/
+ai_model/*.pt
