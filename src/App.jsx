@@ -9,7 +9,6 @@ import Dashboard from './pages/Dashboard';
 import Overview from './pages/dashboard/Overview';
 import Analytics from './pages/dashboard/Analytics';
 import Reports from './pages/dashboard/Reports';
-import Alerts from './pages/dashboard/Alerts';
 import Settings from './pages/dashboard/Settings';
 import ImageAnalysis from './pages/dashboard/ImageAnalysis';
 import Features from './pages/Features';
